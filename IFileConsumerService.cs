@@ -8,6 +8,7 @@ namespace FileWatching
 {
     public interface IFileConsumerService
     {
+
         public Task ConsumeFile(string pathToFile); 
     }
 }

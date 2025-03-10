@@ -17,8 +17,9 @@ namespace FileWatching
         public MyFileWatcher(ILogger<MyFileWatcher> logger, IServiceProvider serviceProvider)
         {
             _logger = logger;
-            if(!Directory.Exists(_directoryName))
-                Directory.CreateDirectory(_directoryName);
+            //if(!Directory.Exists(_directoryName))
+            //    Directory.CreateDirectory(_directoryName);
+            _directoryName = string.Format(ConfigValueProvider.Get("FSW:FSWSource"), DateTime.Now);
             _fileSystemWatcher = new FileSystemWatcher(_directoryName, _fileFilter);
             _serviceProvider = serviceProvider;
         }
@@ -64,6 +65,11 @@ namespace FileWatching
 
         private void _fileSystemWatcher_Changed(object sender, FileSystemEventArgs e)
         {
+            using (var scope = _serviceProvider.CreateScope())
+            {
+                var consumerService = scope.ServiceProvider.GetRequiredService<IFileConsumerService>();
+                Task.Run(() => consumerService.ConsumeFile(e.FullPath));
+            }
         }
 
         private void _fileSystemWatcher_Created(object sender, FileSystemEventArgs e)
